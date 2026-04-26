@@ -30,8 +30,12 @@ export default function CartPage() {
   const [coupon, setCoupon] = useState("");
 
   useEffect(() => {
-    if (!user) { router.push("/login"); return; }
+    if (!user) {
+      router.push("/login");
+      return;
+    }
     fetchCart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchCart = async () => {
@@ -52,18 +56,17 @@ export default function CartPage() {
         { method: "PUT" }
       );
       setCart(data);
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      alert((err as Error).message);
     }
   };
 
   const removeItem = async (itemId: number) => {
     try {
-      const data = await apiFetch(`/cart/items/${itemId}`,
-        { method: "DELETE" });
+      const data = await apiFetch(`/cart/items/${itemId}`, { method: "DELETE" });
       setCart(data);
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      alert((err as Error).message);
     }
   };
 
@@ -71,158 +74,284 @@ export default function CartPage() {
     try {
       await apiFetch("/cart", { method: "DELETE" });
       fetchCart();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      alert((err as Error).message);
     }
   };
 
-  if (loading) return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12
-          border-b-2 border-indigo-600" />
+  if (loading)
+    return (
+      <div style={{ background: "var(--bg-primary)", minHeight: "100vh" }}>
+        <Navbar />
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>
+          <div style={{ color: "var(--text-muted)", fontSize: "14px", letterSpacing: "2px" }}>
+            LOADING...
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ background: "var(--bg-primary)", minHeight: "100vh" }}>
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 py-10">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">
-          🛒 My Cart
-        </h1>
+      <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "3rem 2rem" }}>
+
+        <div style={{ marginBottom: "2.5rem" }}>
+          <div style={{ fontSize: "11px", letterSpacing: "4px", color: "var(--gold)", marginBottom: "6px" }}>
+            MY CART
+          </div>
+          <h1 style={{ fontSize: "32px", fontWeight: "700", color: "var(--text-primary)" }}>
+            Shopping Cart
+          </h1>
+        </div>
 
         {!cart || cart.items.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm p-16
-            text-center">
-            <p className="text-6xl mb-4">🛒</p>
-            <p className="text-xl text-gray-500 mb-6">
+          <div style={{
+            background: "var(--bg-card)",
+            border: "1px solid var(--border)",
+            borderRadius: "20px",
+            padding: "5rem 2rem",
+            textAlign: "center",
+          }}>
+            <p style={{ fontSize: "4rem", marginBottom: "1rem" }}>🛒</p>
+            <p style={{ color: "var(--text-muted)", fontSize: "18px", marginBottom: "2rem" }}>
               Your cart is empty
             </p>
-            <button onClick={() => router.push("/products")}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white
-                px-8 py-3 rounded-xl font-semibold transition">
-              Start Shopping
+            <button
+              onClick={() => router.push("/products")}
+              style={{
+                background: "var(--gold)",
+                color: "#000",
+                border: "none",
+                borderRadius: "8px",
+                padding: "12px 32px",
+                fontSize: "12px",
+                fontWeight: "700",
+                letterSpacing: "2px",
+                cursor: "pointer",
+              }}
+            >
+              START SHOPPING
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 360px",
+            gap: "2rem",
+            alignItems: "start",
+          }}>
 
             {/* Items */}
-            <div className="lg:col-span-2 space-y-4">
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {cart.items.map((item) => (
-                <div key={item.id}
-                  className="bg-white rounded-2xl shadow-sm p-6
-                    flex items-center gap-4">
-
+                <div
+                  key={item.id}
+                  style={{
+                    background: "var(--bg-card)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "16px",
+                    padding: "1.5rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "1.25rem",
+                  }}
+                >
                   {/* Icon */}
-                  <div className="w-16 h-16 bg-indigo-100 rounded-xl
-                    flex items-center justify-center text-3xl flex-shrink-0">
+                  <div style={{
+                    width: "60px",
+                    height: "60px",
+                    background: "var(--bg-surface)",
+                    borderRadius: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "1.75rem",
+                    flexShrink: 0,
+                  }}>
                     🛍️
                   </div>
 
                   {/* Info */}
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800">
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontWeight: "600", color: "var(--text-primary)", marginBottom: "4px" }}>
                       {item.productName}
                     </h3>
-                    <p className="text-sm text-gray-400">
+                    <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
                       {item.size && `Size: ${item.size}`}
-                      {item.color && ` · Color: ${item.color}`}
+                      {item.size && item.color && " · "}
+                      {item.color && `Color: ${item.color}`}
                     </p>
-                    <p className="text-indigo-600 font-bold mt-1">
+                    <p style={{ color: "var(--gold)", fontWeight: "700", marginTop: "4px" }}>
                       ${item.unitPrice}
                     </p>
                   </div>
 
-                  {/* Quantity */}
-                  <div className="flex items-center gap-2">
+                  {/* Quantity controls */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <button
                       onClick={() => updateItem(item.id, item.quantity - 1)}
-                      className="w-8 h-8 rounded-full border
-                        border-gray-300 flex items-center justify-center
-                        hover:bg-gray-100">
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        border: "1px solid var(--border)",
+                        background: "var(--bg-surface)",
+                        color: "var(--text-primary)",
+                        cursor: "pointer",
+                        fontSize: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
                       −
                     </button>
-                    <span className="w-8 text-center font-semibold">
+                    <span style={{ width: "30px", textAlign: "center", color: "var(--text-primary)", fontWeight: "600" }}>
                       {item.quantity}
                     </span>
                     <button
                       onClick={() => updateItem(item.id, item.quantity + 1)}
-                      className="w-8 h-8 rounded-full border
-                        border-gray-300 flex items-center justify-center
-                        hover:bg-gray-100">
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        border: "1px solid var(--border)",
+                        background: "var(--bg-surface)",
+                        color: "var(--text-primary)",
+                        cursor: "pointer",
+                        fontSize: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
                       +
                     </button>
                   </div>
 
-                  {/* Subtotal */}
-                  <div className="text-right">
-                    <p className="font-bold text-gray-800">
+                  {/* Subtotal + Remove */}
+                  <div style={{ textAlign: "right", minWidth: "80px" }}>
+                    <p style={{ fontWeight: "700", color: "var(--text-primary)", marginBottom: "6px" }}>
                       ${item.subtotal}
                     </p>
                     <button
                       onClick={() => removeItem(item.id)}
-                      className="text-red-400 hover:text-red-600
-                        text-sm mt-1 transition">
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#f87171",
+                        fontSize: "12px",
+                        cursor: "pointer",
+                        padding: 0,
+                      }}
+                    >
                       Remove
                     </button>
                   </div>
                 </div>
               ))}
 
-              <button onClick={clearCart}
-                className="text-red-400 hover:text-red-600
-                  text-sm transition">
+              <button
+                onClick={clearCart}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#f87171",
+                  fontSize: "13px",
+                  cursor: "pointer",
+                  alignSelf: "flex-start",
+                  padding: 0,
+                }}
+              >
                 🗑️ Clear cart
               </button>
             </div>
 
             {/* Summary */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 h-fit">
-              <h2 className="text-xl font-bold text-gray-800 mb-6">
+            <div style={{
+              background: "var(--bg-card)",
+              border: "1px solid var(--border)",
+              borderRadius: "20px",
+              padding: "2rem",
+            }}>
+              <h2 style={{ fontSize: "18px", fontWeight: "700", color: "var(--text-primary)", marginBottom: "1.5rem" }}>
                 Order Summary
               </h2>
 
-              <div className="space-y-3 mb-6">
-                <div className="flex justify-between text-gray-600">
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "1.5rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)", fontSize: "14px" }}>
                   <span>Items ({cart.itemCount})</span>
                   <span>${cart.total}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
+                <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)", fontSize: "14px" }}>
                   <span>Shipping</span>
-                  <span className="text-green-600">Free</span>
+                  <span style={{ color: "#4ade80" }}>Free</span>
                 </div>
-                <div className="border-t pt-3 flex justify-between
-                  font-bold text-gray-800 text-lg">
+                <div style={{
+                  borderTop: "1px solid var(--border)",
+                  paddingTop: "12px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontWeight: "700",
+                  color: "var(--text-primary)",
+                  fontSize: "18px",
+                }}>
                   <span>Total</span>
-                  <span>${cart.total}</span>
+                  <span style={{ color: "var(--gold)" }}>${cart.total}</span>
                 </div>
               </div>
 
               {/* Coupon */}
-              <div className="flex gap-2 mb-6">
+              <div style={{ display: "flex", gap: "8px", marginBottom: "1.5rem" }}>
                 <input
                   value={coupon}
                   onChange={(e) => setCoupon(e.target.value)}
                   placeholder="Coupon code"
-                  className="flex-1 border border-gray-300 rounded-lg
-                    px-3 py-2 text-sm focus:outline-none
-                    focus:ring-2 focus:ring-indigo-500"
+                  style={{
+                    flex: 1,
+                    background: "var(--bg-surface)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "8px",
+                    padding: "10px 14px",
+                    color: "var(--text-primary)",
+                    fontSize: "13px",
+                    outline: "none",
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
+                  onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
                 />
-                <button className="bg-gray-100 hover:bg-gray-200
-                  text-gray-700 px-3 py-2 rounded-lg text-sm transition">
+                <button
+                  style={{
+                    background: "var(--bg-surface2)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text-muted)",
+                    borderRadius: "8px",
+                    padding: "10px 14px",
+                    fontSize: "12px",
+                    cursor: "pointer",
+                  }}
+                >
                   Apply
                 </button>
               </div>
 
               <button
                 onClick={() => router.push("/checkout")}
-                className="w-full bg-indigo-600 hover:bg-indigo-700
-                  text-white font-bold py-3 rounded-xl transition">
-                Checkout →
+                style={{
+                  width: "100%",
+                  background: "var(--gold)",
+                  color: "#000",
+                  border: "none",
+                  borderRadius: "10px",
+                  padding: "15px",
+                  fontSize: "12px",
+                  fontWeight: "700",
+                  letterSpacing: "2px",
+                  cursor: "pointer",
+                }}
+              >
+                CHECKOUT →
               </button>
             </div>
           </div>
