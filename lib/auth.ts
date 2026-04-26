@@ -11,6 +11,8 @@ export function saveAuth(data: AuthUser) {
   localStorage.setItem("accessToken", data.accessToken);
   localStorage.setItem("refreshToken", data.refreshToken);
   localStorage.setItem("user", JSON.stringify(data));
+  // Sync cookie pour le middleware Next.js
+  document.cookie = `accessToken=${data.accessToken}; path=/; max-age=900; SameSite=Lax`;
 }
 
 export function getUser(): AuthUser | null {
@@ -25,9 +27,8 @@ export function getToken(): string | null {
 }
 
 export function logout() {
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("user");
+  localStorage.clear();
+  document.cookie = "accessToken=; path=/; max-age=0";
   window.location.href = "/login";
 }
 
