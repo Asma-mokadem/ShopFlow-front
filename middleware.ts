@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const protectedRoutes = ["/cart", "/dashboard", "/orders"];
+//  /checkout manquait dans les routes protégées
+const protectedRoutes = ["/cart", "/dashboard", "/orders", "/checkout"];
 const authRoutes = ["/login", "/register"];
 
 export function middleware(request: NextRequest) {
@@ -10,7 +11,10 @@ export function middleware(request: NextRequest) {
 
   // Si route protégée et pas de token → redirect login
   if (protectedRoutes.some((r) => pathname.startsWith(r)) && !token) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    // passer le callbackUrl pour rediriger après connexion
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   // Si déjà connecté et va sur login/register → redirect home
@@ -22,5 +26,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|public).*)"],
 };

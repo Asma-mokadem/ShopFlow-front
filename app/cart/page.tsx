@@ -28,6 +28,8 @@ export default function CartPage() {
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [coupon, setCoupon] = useState("");
+  //  ajouter état d'erreur global
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) {
@@ -42,8 +44,8 @@ export default function CartPage() {
     try {
       const data = await apiFetch("/cart");
       setCart(data);
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -51,13 +53,17 @@ export default function CartPage() {
 
   const updateItem = async (itemId: number, quantity: number) => {
     try {
+      // BUG FIX: si quantity = 0, appeler removeItem plutôt que PUT avec 0
+      if (quantity <= 0) {
+        return removeItem(itemId);
+      }
       const data = await apiFetch(
         `/cart/items/${itemId}?quantity=${quantity}`,
         { method: "PUT" }
       );
       setCart(data);
     } catch (err: unknown) {
-      alert((err as Error).message);
+      setError((err as Error).message);
     }
   };
 
@@ -66,16 +72,18 @@ export default function CartPage() {
       const data = await apiFetch(`/cart/items/${itemId}`, { method: "DELETE" });
       setCart(data);
     } catch (err: unknown) {
-      alert((err as Error).message);
+      setError((err as Error).message);
     }
   };
 
   const clearCart = async () => {
     try {
+      //  clearCart retourne 204 No Content → apiFetch retourne null
       await apiFetch("/cart", { method: "DELETE" });
-      fetchCart();
+      // Recharger le panier après vidage
+      await fetchCart();
     } catch (err: unknown) {
-      alert((err as Error).message);
+      setError((err as Error).message);
     }
   };
 
@@ -104,6 +112,27 @@ export default function CartPage() {
             Shopping Cart
           </h1>
         </div>
+
+        {/* BUG FIX: afficher l'erreur globale */}
+        {error && (
+          <div style={{
+            background: "rgba(220,38,38,0.1)",
+            border: "1px solid rgba(220,38,38,0.3)",
+            color: "#f87171",
+            padding: "12px 16px",
+            borderRadius: "10px",
+            marginBottom: "1.5rem",
+            fontSize: "14px",
+          }}>
+            {error}
+            <button
+              onClick={() => setError("")}
+              style={{ float: "right", background: "none", border: "none", color: "#f87171", cursor: "pointer" }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {!cart || cart.items.length === 0 ? (
           <div style={{
@@ -157,22 +186,16 @@ export default function CartPage() {
                     gap: "1.25rem",
                   }}
                 >
-                  {/* Icon */}
                   <div style={{
-                    width: "60px",
-                    height: "60px",
+                    width: "60px", height: "60px",
                     background: "var(--bg-surface)",
                     borderRadius: "12px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "1.75rem",
-                    flexShrink: 0,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "1.75rem", flexShrink: 0,
                   }}>
                     🛍️
                   </div>
 
-                  {/* Info */}
                   <div style={{ flex: 1 }}>
                     <h3 style={{ fontWeight: "600", color: "var(--text-primary)", marginBottom: "4px" }}>
                       {item.productName}
@@ -187,22 +210,16 @@ export default function CartPage() {
                     </p>
                   </div>
 
-                  {/* Quantity controls */}
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <button
                       onClick={() => updateItem(item.id, item.quantity - 1)}
                       style={{
-                        width: "30px",
-                        height: "30px",
-                        borderRadius: "50%",
+                        width: "30px", height: "30px", borderRadius: "50%",
                         border: "1px solid var(--border)",
                         background: "var(--bg-surface)",
                         color: "var(--text-primary)",
-                        cursor: "pointer",
-                        fontSize: "16px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
+                        cursor: "pointer", fontSize: "16px",
+                        display: "flex", alignItems: "center", justifyContent: "center",
                       }}
                     >
                       −
@@ -213,24 +230,18 @@ export default function CartPage() {
                     <button
                       onClick={() => updateItem(item.id, item.quantity + 1)}
                       style={{
-                        width: "30px",
-                        height: "30px",
-                        borderRadius: "50%",
+                        width: "30px", height: "30px", borderRadius: "50%",
                         border: "1px solid var(--border)",
                         background: "var(--bg-surface)",
                         color: "var(--text-primary)",
-                        cursor: "pointer",
-                        fontSize: "16px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
+                        cursor: "pointer", fontSize: "16px",
+                        display: "flex", alignItems: "center", justifyContent: "center",
                       }}
                     >
                       +
                     </button>
                   </div>
 
-                  {/* Subtotal + Remove */}
                   <div style={{ textAlign: "right", minWidth: "80px" }}>
                     <p style={{ fontWeight: "700", color: "var(--text-primary)", marginBottom: "6px" }}>
                       ${item.subtotal}
@@ -238,12 +249,8 @@ export default function CartPage() {
                     <button
                       onClick={() => removeItem(item.id)}
                       style={{
-                        background: "none",
-                        border: "none",
-                        color: "#f87171",
-                        fontSize: "12px",
-                        cursor: "pointer",
-                        padding: 0,
+                        background: "none", border: "none",
+                        color: "#f87171", fontSize: "12px", cursor: "pointer", padding: 0,
                       }}
                     >
                       Remove
@@ -255,13 +262,9 @@ export default function CartPage() {
               <button
                 onClick={clearCart}
                 style={{
-                  background: "none",
-                  border: "none",
-                  color: "#f87171",
-                  fontSize: "13px",
-                  cursor: "pointer",
-                  alignSelf: "flex-start",
-                  padding: 0,
+                  background: "none", border: "none",
+                  color: "#f87171", fontSize: "13px",
+                  cursor: "pointer", alignSelf: "flex-start", padding: 0,
                 }}
               >
                 🗑️ Clear cart
@@ -289,13 +292,9 @@ export default function CartPage() {
                   <span style={{ color: "#4ade80" }}>Free</span>
                 </div>
                 <div style={{
-                  borderTop: "1px solid var(--border)",
-                  paddingTop: "12px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontWeight: "700",
-                  color: "var(--text-primary)",
-                  fontSize: "18px",
+                  borderTop: "1px solid var(--border)", paddingTop: "12px",
+                  display: "flex", justifyContent: "space-between",
+                  fontWeight: "700", color: "var(--text-primary)", fontSize: "18px",
                 }}>
                   <span>Total</span>
                   <span style={{ color: "var(--gold)" }}>${cart.total}</span>
